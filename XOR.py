@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import torch
 from mpl_toolkits.mplot3d import axes3d, art3d
+from torch.utils.benchmark.utils.fuzzer import dtype_size
 
 matplotlib.rcParams.update({'font.size': 12, 'figure.figsize': (14, 8)})
 
@@ -24,25 +25,19 @@ class XOROperatorModel:
         self.b1 = b1
         self.b2 = b2
 
-    # First layer function
     def f1(self, x):
-        x = torch.tensor(x, dtype=torch.float32)
-        return sigmoid(x @ self.W1 + self.b1)
+        return torch.sigmoid(x @ self.W1 + self.b1)
 
-    # Second layer function
     def f2(self, h):
-        h = torch.tensor(h, dtype=torch.float32)
-        return sigmoid(h @ self.W2 + self.b2)
+        return torch.sigmoid(h @ self.W2 + self.b2)
 
     # Predictor
     def f(self, x):
-        x = torch.tensor(x, dtype=torch.float32)
         return self.f2(self.f1(x))
 
     # Uses Cross Entropy
     def loss(self, x, y):
-        y_pred = self.f(x)
-        return -torch.mean(y * torch.log(y_pred) + (1 - y) * torch.log(1 - y_pred))
+        return torch.nn.functional.binary_cross_entropy(self.f(x), y)
 
 model = XOROperatorModel()
 
@@ -51,13 +46,12 @@ x_train = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], requires_grad=True, dty
 y_train = torch.tensor([[0], [1], [1], [0]], requires_grad=True, dtype=torch.float32)
 
 # Declaring learning rate and epochs for the optimization
-epochs = 100000
-learning_rate = 0.1
+epochs = 10000
+learning_rate = 0.5
 
 # Use Adam optimizer
 optimizer = torch.optim.SGD([model.W1, model.W2, model.b1, model.b2], lr=learning_rate)
 
-# Training loop
 for epoch in range(epochs):
     optimizer.zero_grad()   # Clear gradients for next step
     loss_value = model.loss(x_train, y_train)
@@ -67,7 +61,7 @@ for epoch in range(epochs):
     if epoch % 1000 == 0:
         print(f'Epoch {epoch}, Loss: {loss_value.item()}, W1: {model.W1.data}, W2: {model.W2.data}, b1: {model.b1.data}, b2: {model.b2.data}')
 
-# Test data evaluation
+# Test this bad boy to see if it work
 test_data = torch.tensor([[0, 0], [1, 0], [0, 1], [1, 1], [0.6, 0.9], [0.51, 0.51], [0.49, 0.51]], dtype=torch.float32)
 for x_i in test_data:
     x_vectors = x_i.tolist()
@@ -212,11 +206,11 @@ def update_figure(event=None):
     f_grid = np.empty([10, 10])
     for i in range(0, x1_grid.shape[0]):
         for j in range(0, x1_grid.shape[1]):
-            h = model.f1([[x1_grid[i, j], x2_grid[i, j]]])
+            h = model.f1(torch.tensor([[x1_grid[i, j], x2_grid[i, j]]], dtype=torch.float))
             h1_grid[i, j] = h[0, 0]
             h2_grid[i, j] = h[0, 1]
-            f2_grid[i, j] = model.f2([[x1_grid[i, j], x2_grid[i, j]]])
-            f_grid[i, j] = model.f([[x1_grid[i, j], x2_grid[i, j]]])
+            f2_grid[i, j] = model.f2(torch.tensor([[x1_grid[i, j], x2_grid[i, j]]], dtype=torch.float))
+            f_grid[i, j] = model.f(torch.tensor([[x1_grid[i, j], x2_grid[i, j]]], dtype=torch.float))
 
     plot1_h1 = plot1.plot_wireframe(x1_grid, x2_grid, h1_grid, color="lightgreen")
     plot1_h2 = plot1.plot_wireframe(x1_grid, x2_grid, h2_grid, color="darkgreen")
@@ -237,10 +231,10 @@ def update_figure(event=None):
         model.loss(x_train, y_train)
     )
 
-    table._cells[(1, 2)]._text.set_text("${%.1f}$" % model.f([[0, 0]]))
-    table._cells[(2, 2)]._text.set_text("${%.1f}$" % model.f([[0, 1]]))
-    table._cells[(3, 2)]._text.set_text("${%.1f}$" % model.f([[1, 0]]))
-    table._cells[(4, 2)]._text.set_text("${%.1f}$" % model.f([[1, 1]]))
+    table._cells[(1, 2)]._text.set_text("${%.1f}$" % model.f(torch.tensor([[0, 0]], dtype=torch.float)))
+    table._cells[(2, 2)]._text.set_text("${%.1f}$" % model.f(torch.tensor([[0, 1]], dtype=torch.float)))
+    table._cells[(3, 2)]._text.set_text("${%.1f}$" % model.f(torch.tensor([[1, 0]], dtype=torch.float)))
+    table._cells[(4, 2)]._text.set_text("${%.1f}$" % model.f(torch.tensor([[1, 1]], dtype=torch.float)))
 
     plt.pause(0.01)
     fig.canvas.draw()
