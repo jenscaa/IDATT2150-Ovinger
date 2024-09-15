@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-# Modifisert LSTM-modell
+# Many-to-many model
 class LongShortTermMemoryModel(nn.Module):
 
     def __init__(self, encoding_size):
@@ -25,7 +25,6 @@ class LongShortTermMemoryModel(nn.Module):
     def loss(self, x, y):  # x shape: (sequence length, batch size, encoding size), y shape: (sequence length, encoding size)
         return nn.functional.cross_entropy(self.logits(x), y.argmax(1))
 
-# Utvidet tegnkoding for "hello world"
 char_encodings = [
     [1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],  # ' '
     [0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0.],  # 'h'
@@ -39,7 +38,7 @@ char_encodings = [
 
 index_to_char = [' ', 'h', 'e', 'l', 'o', 'w', 'r', 'd']
 
-# Treningsdata for "hello world"
+# Training set for "hello world"
 x_train = torch.tensor([
     [char_encodings[1]],  # 'h'
     [char_encodings[2]],  # 'e'
@@ -68,12 +67,10 @@ y_train = torch.tensor([
     char_encodings[0],  # ' '
 ])
 
+# Optimizing model
 encoding_size = len(char_encodings[0])
 model = LongShortTermMemoryModel(encoding_size)
-
 optimizer = torch.optim.RMSprop(model.parameters(), 0.001)
-
-# Trening av modellen
 for epoch in range(1000):
     model.reset()
     loss = model.loss(x_train, y_train)
@@ -82,13 +79,12 @@ for epoch in range(1000):
     optimizer.zero_grad()
 
     if epoch % 100 == 99:
-        # Generer tegnsekvens fra input 'h'
         model.reset()
         text = 'h'
-        y = model.f(torch.tensor([[char_encodings[1]]]))  # Starter med 'h'
+        y = model.f(torch.tensor([[char_encodings[1]]]))  # Starts with 'h'
         text += index_to_char[y.argmax(1)]
 
-        for c in range(50):  # Generer 50 tegn
+        for c in range(50):  # Generate 50 chars
             y = model.f(torch.tensor([[char_encodings[y.argmax(1)]]]))
             text += index_to_char[y.argmax(1)]
         print(f'Epoch {epoch + 1}: {text}')
