@@ -55,20 +55,20 @@ class ManyToOneLSTM(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        _, (hidden, _) = self.lstm(x)  # Only take the last hidden state
+        _, (hidden, _) = self.lstm(x)     # Only take the last hidden state
         out = self.fc(hidden.squeeze(0))  # Many-to-one: one output per sequence
         return out
 
 # Model parameters
 max_word_length = 4  # Max word length (including padding)
 input_size = len(char_encodings[0])  # One-hot encoded vector size (char set size)
-hidden_size = 128  # Hidden state size
+hidden_size = 64  # Hidden state size
 output_size = len(emoji_list)  # Number of emojis
 # Create the model
 model = ManyToOneLSTM(input_size, hidden_size, output_size)
 
 # Optimize model
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.RMSprop(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()
 # Prepare training data
 X_train, y_train = prepare_data(word_to_emoji, max_word_length)
@@ -101,6 +101,6 @@ while word != "q":
         predicted_emoji = predict_emoji(word)
         print(f"Word: {word}, Predicted Emoji: {predicted_emoji}")
     except ValueError as e:
-        print(f"Error: The word '{word}' contains invalid characters or is not recognized because {e}.")
+        print(f"Error: The word '{word}' contains invalid characters because {e}.")
     word = input("Test yourself: ")
 
