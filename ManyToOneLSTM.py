@@ -55,8 +55,8 @@ class ManyToOneLSTM(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        _, (hidden, _) = self.lstm(x)     # Only take the last hidden state
-        out = self.fc(hidden.squeeze(0))  # Many-to-one: one output per sequence
+        _, (output, _) = self.lstm(x)     # Only take the last output
+        out = self.fc(output.squeeze(0))  # Many-to-one: one output per sequence
         return out
 
 # Model parameters
