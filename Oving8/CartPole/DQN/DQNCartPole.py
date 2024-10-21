@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import gymnasium as gym
 import numpy as np
-from DQNAgent import DQNAgent
+from Oving8.DQNAgent import DQNAgent
 
 class DQNCartPoolAgent(DQNAgent):
     def __init__(self, state_size, action_size, buffer_size=10000, batch_size=64, gamma=0.99, lr=1e-3, tau=1e-3,

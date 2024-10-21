@@ -1,7 +1,7 @@
 import torch
 import gymnasium as gym
 import numpy as np
-from QNetwork import QNetwork
+from Oving8.QNetwork import QNetwork
 
 # Define a function to select the best action (exploitation)
 def select_action(state, qnetwork):

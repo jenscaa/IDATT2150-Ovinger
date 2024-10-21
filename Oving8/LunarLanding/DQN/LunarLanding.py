@@ -1,8 +1,7 @@
 import gymnasium as gym
 import torch
-import torch.nn as nn
 import numpy as np
-from QNetwork import QNetwork
+from Oving8.QNetwork import QNetwork
 
 # Load the trained agent and run it in the environment with rendering
 def run_trained_agent(filename="trained_lunar_lander.pth"):

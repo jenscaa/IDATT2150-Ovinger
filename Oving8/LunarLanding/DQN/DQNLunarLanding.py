@@ -1,8 +1,7 @@
 import gymnasium as gym
 import torch
-from sympy.codegen.futils import render_as_module
 
-from DQNAgent import DQNAgent
+from Oving8.DQNAgent import DQNAgent
 
 
 
